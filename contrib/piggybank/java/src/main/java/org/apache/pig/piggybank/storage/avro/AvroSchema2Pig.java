@@ -113,10 +113,33 @@ public class AvroSchema2Pig {
         } else if (avroType.equals(Schema.Type.UNION)) {
 
             if (AvroStorageUtils.isAcceptableUnion(in)) {
-                Schema acceptSchema = AvroStorageUtils.getAcceptedType(in);
-                ResourceFieldSchema realFieldSchema = inconvert(acceptSchema, null);
-                fieldSchema.setType(realFieldSchema.getType());
-                fieldSchema.setSchema(realFieldSchema.getSchema());
+		fieldSchema.setType(DataType.TUPLE);
+		ResourceSchema tupleSchema = new ResourceSchema();
+		List<Schema> types = in.getTypes();
+		boolean nullable = false;
+		for(Schema unionType : types)
+			if(unionType.getType().equals(Schema.Type.NULL))
+				nullable = true;
+		//normal behavior
+		if(nullable && types.size() <= 2) {
+		        Schema acceptSchema = AvroStorageUtils.getAcceptedType(in);
+		        ResourceFieldSchema realFieldSchema = inconvert(acceptSchema, null);
+		        fieldSchema.setType(realFieldSchema.getType());
+		        fieldSchema.setSchema(realFieldSchema.getSchema());
+		} else {
+			AvroStorageLog.details("complex union type to handle");
+			ResourceFieldSchema[] childFields = new ResourceFieldSchema[nullable?types.size()-1:types.size()];
+			int index = 0;
+			for (Schema.Field field : fields) {
+				if(!unionType.getType().equals(Schema.Type.NULL))
+					childFields[index++] = inconvert(field.schema(), field.name());
+			}
+		}
+		tupleSchema.setFields(childFields);
+		fieldSchema.setSchema(tupleSchema);
+
+
+
             } else
                 throw new IOException("Do not support generic union:" + in);
 

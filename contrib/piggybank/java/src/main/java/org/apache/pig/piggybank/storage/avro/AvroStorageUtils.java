@@ -301,15 +301,17 @@ public class AvroStorageUtils {
         if (! in.getType().equals(Schema.Type.UNION))
             return false;
 
-        List<Schema> types = in.getTypes();
-        if (types.size() <= 1) {
-            return true;
-        } else if (types.size() > 2) {
-            return false; /*contains more than 2 types */
-        } else {
-            /* one of two types is NULL */
-            return types.get(0).getType().equals(Schema.Type.NULL) || types.get(1) .getType().equals(Schema.Type.NULL);
-        }
+	return true;
+
+//        List<Schema> types = in.getTypes();
+//        if (types.size() <= 1) {
+//            return true;
+//        } else if (types.size() > 2) {
+//            return false; /*contains more than 2 types */
+//        } else {
+//            /* one of two types is NULL */
+//            return types.get(0).getType().equals(Schema.Type.NULL) || types.get(1) .getType().equals(Schema.Type.NULL);
+//        }
     }
 
     /** wrap a pig schema as tuple */
